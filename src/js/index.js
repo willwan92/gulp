@@ -4,7 +4,5 @@
  * @date    2018-04-11 16:15:22
  * @version $Id$
  */
-
 var sum = require('./sum');
-
-sum(22, 2);
+sum(22, 2222222);

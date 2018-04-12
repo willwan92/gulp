@@ -15,7 +15,12 @@ var sequence = require('run-sequence');
 // 监控文件变化，并且可以监控依赖文件的变化
 var watchify = require('watchify');
 
+var uglify = require('gulp-uglify');
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+var gif = require('gulp-if');
 
+var isProduction = process.env.ENV === 'prod';
 // 定义默认任务
 gulp.task('default', function () {
 	sequence('scripts');
@@ -25,19 +30,26 @@ gulp.task('default', function () {
 gulp.task('scripts', function () {
 	// browserify api
 	// browserify()
-	// 	.add(['src/js/b.js', 'src/js/sum.js'])
+	// 	.add(['src/js/index.js', 'src/js/sum.js'])
 	// 	.bundle()
-	// 	.pipe(fs.createWriteStream('js/bundle.js'));
+	// 	.pipe(fs.createWriteStream('js/app.js'));
 		
 	var b = browserify({
-		entries: 'src/js/index.js',
+		entries: './src/js/index.js',
 		cache: {},
 		packageCache: {},
 		plugin: [watchify]
 	});
 
 	var bundle = function () {
-		b.bundle().pipe(fs.createWriteStream('js/app.js'));
+		// bundle() 方法返回的是用打包后的js文件内容返回node文件系统标准的可读流
+		// 但是gulp使用的是vinyl文件系统的流，所以在使用gulp-uglify时需要用的是
+		// vinyl的buffer
+		b.bundle()
+			.pipe(source('app.js'))
+			.pipe(buffer())
+			.pipe(gif(isProduction, uglify()))
+			.pipe(gulp.dest('js/'));
 	};
 
 	bundle();
